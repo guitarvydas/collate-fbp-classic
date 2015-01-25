@@ -30,22 +30,6 @@ static int state;
 static record *header;
 static int recnum;
 
-static int body2 (component *self) {
-  while (recnum == rec->header_number) {
-    switch (state) {
-    case 3:
-      if (debug) printf ("collate sends record /%s/\n", rec->string);
-      if (fbp_send (self, &out[0], rec)) { state = 5; return 1; }
-    case 5:
-      if (fbp_receive (self, &self->inports[1], (IP *)&rec)) { state = 6; return 1; }
-    case 6:
-      if (debug) printf("collate receives record /%s/\n", rec->string);
-      state = 3;
-    }
-  }
-  return 0;
-}
-
 static void body (component *self) {
   switch (state) {
   case 0:
@@ -58,7 +42,18 @@ static void body (component *self) {
       if (debug) printf("collate sends header /%s/\n", header->string);
       if (fbp_send (self, &out[0], header)) { state = 3; return; }
     case 3: case 4: case 5: case 6:
-      if (body2(self)) return;
+      while (recnum == rec->header_number) {
+	switch (state) {
+	case 3:
+	  if (debug) printf ("collate sends record /%s/\n", rec->string);
+	  if (fbp_send (self, &out[0], rec)) { state = 5; return; }
+	case 5:
+	  if (fbp_receive (self, &self->inports[1], (IP *)&rec)) { state = 6; return; }
+	case 6:
+	  if (debug) printf("collate receives record /%s/\n", rec->string);
+	  state = 3;
+	}
+      }
     }
   }
 }
