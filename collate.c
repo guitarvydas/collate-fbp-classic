@@ -58,8 +58,6 @@ static void body (component *self) {
   }
 }
 
-
-
 component *collate(component *parent) {
   component *self = (component *) malloc (sizeof(component));
   self->name = "COLLATE";
